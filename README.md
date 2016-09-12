@@ -18,6 +18,7 @@ OrbProp expects at least a TLE file (or a collection of TLE's in a single file.)
 * `-o <Path to folder>`: Path to the results folder. If it doesn't exist, it'll be created. (**default**: `./propagations/`)
 * `-s <UNIX time>`: Orbit propagation start time (**default**: current timestamp).
 * `-e <UNIX time>`: Orbit propagation end time (**default**: current timestamp + 1000 minutes).
+* `-p <integer>`: Number of propagation points. If set, the end time will be ignored.
 * `-d <integer>`: Positive amount of seconds between each propagation point (**default**: 1 minute).
 * `-v`: Verbose; will output all data points as it generates them.
 * `-h`: Shows this help.
@@ -25,3 +26,4 @@ OrbProp expects at least a TLE file (or a collection of TLE's in a single file.)
 Example:
 
     $ ./orbprop -t tle_collections/cubesat.txt -s $(date +%s) -e $(($(date +%s)+3600)) -d 30
+    $ ./orbprop -t tle_collections/cubesat.txt -p 1440

@@ -52,6 +52,7 @@ void printFooter(void)
 
 int main(int argc, char **argv)
 {
+    int    prop_n_points;       // Number of propagation points.
     time_t prop_time_start;     // In seconds
     time_t prop_time_end;       // In seconds
     time_t prop_time_step;      // In seconds
@@ -75,6 +76,7 @@ int main(int argc, char **argv)
     prop_time_start = time(NULL);
     prop_time_end   = prop_time_start + 60000;
     prop_time_step  = 60;
+    prop_n_points   = -1;
     tle_file_path   = "collection.tle";
     tmp = gmtime(&prop_time_start);
     strftime(time_formated, 21, "%Y-%m-%d_%H%M%S", tmp);
@@ -87,6 +89,7 @@ int main(int argc, char **argv)
          *  -s          UNIX time       Propagation start.
          *  -e          UNIX time       Propagation end.
          *  -d          integer         A positive integer representing the amount of seconds of resolution (i.e. propagation step).
+         *  -p          integer         A positive integer representing the amount of data points to be generated (end time will be ignored).
          *  -v          (none)          Verbose: outputs all data points as it generates them.
          */
         int arg_iterator = 1;
@@ -98,6 +101,15 @@ int main(int argc, char **argv)
                 arg_iterator++;
             } else if(str == "-o" && (arg_iterator + 1) < argc) {
                 output_path_root = std::string(argv[arg_iterator + 1]);
+                arg_iterator++;
+            } else if(str == "-p" && (arg_iterator + 1) < argc) {
+                if((prop_n_points = strtol(argv[arg_iterator + 1], NULL, 10)) <= 0)
+                {
+                    cerr << "Wrong argument value: \'-p " << std::string(argv[arg_iterator + 1]) << "\'" << endl;
+                    cerr << "The number of propagation points should be a positive integer." << endl;
+                    printHelp();
+                    return -1;
+                }
                 arg_iterator++;
             } else if(str == "-s" && (arg_iterator + 1) < argc) {
                 if((prop_time_start = strtol(argv[arg_iterator + 1], NULL, 10)) <= 0)
@@ -137,6 +149,12 @@ int main(int argc, char **argv)
         }
     }
 
+    if(prop_n_points > 0) {
+        prop_time_end = prop_time_start + prop_time_step * prop_n_points;
+    } else {
+        prop_n_points = ceil((prop_time_end - prop_time_start) / prop_time_step);
+    }
+
     tmp = gmtime(&prop_time_start);
     strftime(time_formated, 21, "%Y-%m-%d %T", tmp);
     julian_days = tmp->tm_yday + tmp->tm_hour/24.0 + tmp->tm_min/(24.0*60.0) + tmp->tm_sec/(24.0*60.0*60.0);
@@ -148,7 +166,7 @@ int main(int argc, char **argv)
     cout << "  T(end)  : " << prop_time_end << " (" << time_formated << ", Julian date: " << (1900 + tmp->tm_year) << ", " << julian_days << ")" << endl;
     cout << "  T(step) : " << prop_time_step << " seconds (" << (prop_time_step/60.0) <<" min.)" << endl;
     cout << "  Span    : " << ((prop_time_end - prop_time_start) / 3600.0) << " hours." << endl;
-    cout << "  Output  : " << ceil((prop_time_end - prop_time_start) / prop_time_step) << " points." << endl << endl;
+    cout << "  Output  : " << prop_n_points << " points." << endl << endl;
 
     if(prop_time_start > prop_time_end) {
         cerr << "  ERROR: Start time is after end time." << endl;
@@ -232,7 +250,7 @@ int main(int argc, char **argv)
          */
         cTopo topo_look = ground_station.GetLookAngle(satellite);
 
-        cout << sat_identifier << " (" << output_path << "): " << sat_name << "." << endl;
+        cout << sat_identifier << " (" << output_path << "): " << sat_name << endl;
 
         if(verbose) {
             printHeader(true);
