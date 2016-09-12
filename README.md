@@ -21,3 +21,7 @@ OrbProp expects at least a TLE file (or a collection of TLE's in a single file.)
 * `-d <integer>`: Positive amount of seconds between each propagation point (**default**: 1 minute).
 * `-v`: Verbose; will output all data points as it generates them.
 * `-h`: Shows this help.
+
+Example:
+
+    $ ./orbprop -t tle_collections/cubesat.txt -s $(date +%s) -e $(($(date +%s)+3600)) -d 30
