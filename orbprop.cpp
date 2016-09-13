@@ -1,14 +1,21 @@
 /***********************************************************************************************//**
  *  \brief      Orbit propagator.
- *  \details
+ *  \details    A tool to generate satellite orbit propagation data based on NORAD's SGP4 algorithm
+ *              and publicly available libraries.
  *  \author     Carles Araguz, carles.araguz@upc.edu
  *  \version    0.1
  *  \date       09-sep-2016
+ *  \copyright  GNU Public License (v3). This files are part of an on-going non-commercial research
+ *              project at NanoSat Lab (http://nanosatlab.upc.edu) of the Technical University of
+ *              Catalonia - UPC BarcelonaTech. Third-party libraries used in this framework might be
+ *              subject to different copyright conditions.
  **************************************************************************************************/
 
 
 /*** INCLUDE SECTION ********************************************************************************/
 #include "orbprop.hpp"
+
+using namespace std;
 
 /*** CONSTANTS **************************************************************************************/
 // #define ERR_ANGLE 0.001
@@ -58,9 +65,9 @@ int main(int argc, char **argv)
     time_t prop_time_step;      // In seconds
     time_t prop_time_curr;      // Simulation's current time.
     time_t tle_time;            // Time reference in the TLE file.
-    std::string tle_file_path;  // The TLE file name/path.
-    std::string output_path_root; // Path folder for the resulting files.
-    std::string output_path;    // Output path for the resulting files.
+    string tle_file_path;  // The TLE file name/path.
+    string output_path_root; // Path folder for the resulting files.
+    string output_path;    // Output path for the resulting files.
     FILE * tle_file;            // TLE input file.
     FILE * output_file;         // Resulting output file.
     char tle_line[80];          // One single line from the TLE file (auxiliary variable).
@@ -95,17 +102,17 @@ int main(int argc, char **argv)
         int arg_iterator = 1;
         while(arg_iterator < argc)
         {
-            string str = std::string(argv[arg_iterator]);
+            string str = string(argv[arg_iterator]);
             if(str == "-t" && (arg_iterator + 1) < argc) {
-                tle_file_path = std::string(argv[arg_iterator + 1]);
+                tle_file_path = string(argv[arg_iterator + 1]);
                 arg_iterator++;
             } else if(str == "-o" && (arg_iterator + 1) < argc) {
-                output_path_root = std::string(argv[arg_iterator + 1]);
+                output_path_root = string(argv[arg_iterator + 1]);
                 arg_iterator++;
             } else if(str == "-p" && (arg_iterator + 1) < argc) {
                 if((prop_n_points = strtol(argv[arg_iterator + 1], NULL, 10)) <= 0)
                 {
-                    cerr << "Wrong argument value: \'-p " << std::string(argv[arg_iterator + 1]) << "\'" << endl;
+                    cerr << "Wrong argument value: \'-p " << string(argv[arg_iterator + 1]) << "\'" << endl;
                     cerr << "The number of propagation points should be a positive integer." << endl;
                     printHelp();
                     return -1;
@@ -114,7 +121,7 @@ int main(int argc, char **argv)
             } else if(str == "-s" && (arg_iterator + 1) < argc) {
                 if((prop_time_start = strtol(argv[arg_iterator + 1], NULL, 10)) <= 0)
                 {
-                    cerr << "Wrong argument value: \'-s " << std::string(argv[arg_iterator + 1]) << "\'" << endl;
+                    cerr << "Wrong argument value: \'-s " << string(argv[arg_iterator + 1]) << "\'" << endl;
                     cerr << "Propagation start should be a UNIX time" << endl;
                     printHelp();
                     return -1;
@@ -123,7 +130,7 @@ int main(int argc, char **argv)
             } else if(str == "-e" && (arg_iterator + 1) < argc) {
                 if((prop_time_end = strtol(argv[arg_iterator + 1], NULL, 10)) <= 0)
                 {
-                    cerr << "Wrong argument value: \'-e " << std::string(argv[arg_iterator + 1]) << "\'" << endl;
+                    cerr << "Wrong argument value: \'-e " << string(argv[arg_iterator + 1]) << "\'" << endl;
                     cerr << "Propagation end should be a UNIX time" << endl;
                     printHelp();
                     return -1;
@@ -132,7 +139,7 @@ int main(int argc, char **argv)
             } else if(str == "-d" && (arg_iterator + 1) < argc) {
                 if((prop_time_step = strtol(argv[arg_iterator + 1], NULL, 10)) <= 0)
                 {
-                    cerr << "Wrong argument value: \'-d " << std::string(argv[arg_iterator + 1]) << "\'" << endl;
+                    cerr << "Wrong argument value: \'-d " << string(argv[arg_iterator + 1]) << "\'" << endl;
                     cerr << "Propagation steps should be represented with positive integers (in seconds)" << endl;
                     printHelp();
                     return -1;
@@ -187,7 +194,7 @@ int main(int argc, char **argv)
     }
 
     /* Define ground station location on Earth (Barcelona) */
-    cSite ground_station(41.388497, 2.111882, 0);
+    Zeptomoby::OrbitTools::cSite ground_station(41.388497, 2.111882, 0);
     char sat_name[25];
     string sat_identifier;
     int line_count = 0;
@@ -229,13 +236,13 @@ int main(int argc, char **argv)
 
 
         /* New cTLE object: */
-        cTle tle_data(tle_line1, tle_line2, tle_line3);
+        Zeptomoby::OrbitTools::cTle tle_data(tle_line1, tle_line2, tle_line3);
 
         /* Create an Orbit object using the satellite TLE object. */
-        cOrbit orbit(tle_data);
+        Zeptomoby::OrbitTools::cOrbit orbit(tle_data);
 
-        cEciTime satellite = orbit.PositionEci(0.0);
-        cGeo proj_earth = cGeo(satellite, satellite.Date());
+        Zeptomoby::OrbitTools::cEciTime satellite = orbit.PositionEci(0.0);
+        Zeptomoby::OrbitTools::cGeo proj_earth = Zeptomoby::OrbitTools::cGeo(satellite, satellite.Date());
 
         /* :: Warning ::
          *  ToTime() uses mktime to represent the time. This function represents the
@@ -248,7 +255,7 @@ int main(int argc, char **argv)
         /* Get the location of the satellite from the Orbit object. The ECI information is placed
          * into satellite.
          */
-        cTopo topo_look = ground_station.GetLookAngle(satellite);
+        Zeptomoby::OrbitTools::cTopo topo_look = ground_station.GetLookAngle(satellite);
 
         cout << sat_identifier << " (" << output_path << "): " << sat_name << endl;
 
@@ -269,7 +276,7 @@ int main(int argc, char **argv)
             try {
                 satellite = orbit.PositionEci(i/60.0);
                 prop_time_curr = satellite.Date().ToTime();
-                proj_earth = cGeo(satellite, satellite.Date());
+                proj_earth = Zeptomoby::OrbitTools::cGeo(satellite, satellite.Date());
             } catch (exception& e) {
                 cout << "Exception catched!" << endl;
                 break;

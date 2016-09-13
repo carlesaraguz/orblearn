@@ -1,9 +1,14 @@
 /***********************************************************************************************//**
  *  \brief      Orbit propagator.
- *  \details
+ *  \details    A tool to generate satellite orbit propagation data based on NORAD's SGP4 algorithm
+ *              and publicly available libraries.
  *  \author     Carles Araguz, carles.araguz@upc.edu
  *  \version    0.1
  *  \date       09-sep-2016
+ *  \copyright  GNU Public License (v3). This files are part of an on-going non-commercial research
+ *              project at NanoSat Lab (http://nanosatlab.upc.edu) of the Technical University of
+ *              Catalonia - UPC BarcelonaTech. Third-party libraries used in this framework might be
+ *              subject to different copyright conditions.
  **************************************************************************************************/
 
 
@@ -23,8 +28,6 @@
 #include "stdafx.h"         // orbitTools main header file.
 #include "coreLib.h"        // orbitTools core library.
 #include "orbitLib.h"       // orbitTools orbit library.
-// Math library:
-// #include "uMath.h"
 
 
 /*** GLOBAL CONSTANTS *******************************************************************************/
