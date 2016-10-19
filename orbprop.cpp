@@ -172,7 +172,7 @@ int main(int argc, char **argv)
     julian_days = tmp->tm_yday + tmp->tm_hour/24.0 + tmp->tm_min/(24.0*60.0) + tmp->tm_sec/(24.0*60.0*60.0);
     cout << "  T(end)  : " << prop_time_end << " (" << time_formated << ", Julian date: " << (1900 + tmp->tm_year) << ", " << julian_days << ")" << endl;
     cout << "  T(step) : " << prop_time_step << " seconds (" << (prop_time_step/60.0) <<" min.)" << endl;
-    cout << "  Span    : " << ((prop_time_end - prop_time_start) / 3600.0) << " hours." << endl;
+    cout << "  Span    : " << ((prop_time_end - prop_time_start) / 3600.0) << " hours (" << ((prop_time_end - prop_time_start) / 3600.0)/24.0 << " days)." << endl;
     cout << "  Output  : " << prop_n_points << " points." << endl << endl;
 
     if(prop_time_start > prop_time_end) {
