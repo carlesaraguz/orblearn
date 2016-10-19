@@ -15,24 +15,40 @@
 #ifndef __INCL_ORBPROP_
 #define __INCL_ORBPROP_
 
-/*** INCLUDE SECTION ********************************************************************************/
-// Standard libraries:
+/*** INCLUDE SECTION ******************************************************************************/
+/* Standard C++11 libraries: */
 #include <iostream>
 #include <ctime>
 #include <cstdio>
 #include <string>
-#include <map>
+#include <set>
 #include <assert.h>
 #include <math.h>
-// Open-source NORAD SGP4 orbit propagation library (by Michael F. Henry):
-#include "stdafx.h"         // orbitTools main header file.
-#include "coreLib.h"        // orbitTools core library.
-#include "orbitLib.h"       // orbitTools orbit library.
+#include <sys/types.h>
+#include <dirent.h>
+
+/* Open-source NORAD SGP4 C++ Implementation library (by Michael F. Henry): */
+#include "stdafx.h"         /* orbitTools main header file. */
+#include "coreLib.h"        /* orbitTools core library.     */
+#include "orbitLib.h"       /* orbitTools orbit library.    */
 
 
-/*** GLOBAL CONSTANTS *******************************************************************************/
+/*** GLOBAL CONSTANTS *****************************************************************************/
+#define CONF_FILE_PATH  "orbprop.conf"
 
-/*** TYPEDEFS ***************************************************************************************/
+#define DBG_REDB        "\x1b[31;1m"
+#define DBG_REDD        "\x1b[31m"
+#define DBG_GREENB      "\x1b[32;1m"
+#define DBG_GREEND      "\x1b[32m"
+#define DBG_BLUE        "\x1b[34;1m"
+#define DBG_YELLOWB     "\x1b[33;1m"
+#define DBG_YELLOWD     "\x1b[33m"
+#define DBG_WHITEB      "\x1b[37;1m"
+#define DBG_GREY        "\x1b[30;1m"
+#define DBG_NOCOLOR     "\x1b[0m"
+
+
+/*** TYPEDEFS *************************************************************************************/
 typedef struct
 {
     double lat;
@@ -46,11 +62,8 @@ typedef struct
     long long time;
 } OrbitPropagation;
 
-/*** GLOBAL VARIABLES *******************************************************************************/
+/*** GLOBAL VARIABLES *****************************************************************************/
 
-/*** FUNCTIONS **************************************************************************************/
+/*** FUNCTIONS ************************************************************************************/
 
 #endif
-
-
-// EOF

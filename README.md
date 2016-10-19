@@ -14,8 +14,8 @@ A Makefile is provided in order to build the sources easily. Note that the user 
 
 OrbProp expects at least a TLE file (or a collection of TLE's in a single file.) In order to configure the propagation, the following arguments are accepted:
 
-* `-t <File path>`: Path to the Two-Line Elements collection file (**default**: `./collection.tle`).
-* `-o <Path to folder>`: Path to the results folder. If it doesn't exist, it'll be created. (**default**: `./propagations/`)
+* `-t <Path to TLE folder>`: Path to the Two-Line Elements collection file (**default**: `./collection.tle`).
+* `-o <Path to output folder>`: Path to the results folder. If it doesn't exist, it'll be created. (**default**: `./propagations/`)
 * `-s <UNIX time>`: Orbit propagation start time (**default**: current timestamp).
 * `-e <UNIX time>`: Orbit propagation end time (**default**: current timestamp + 1000 minutes).
 * `-p <integer>`: Number of propagation points. If set, the end time will be ignored.
@@ -25,5 +25,5 @@ OrbProp expects at least a TLE file (or a collection of TLE's in a single file.)
 
 Example:
 
-    $ ./orbprop -t tle_collections/cubesat.txt -s $(date +%s) -e $(($(date +%s)+3600)) -d 30
-    $ ./orbprop -t tle_collections/cubesat.txt -p 1440
+    $ ./orbprop -t tle_collections -s $(date +%s) -e $(($(date +%s)+3600)) -d 30
+    $ ./orbprop -t tle_collections -p 1440

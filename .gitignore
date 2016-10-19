@@ -1,2 +1,4 @@
 orbitTools/cppOrbitTools.zip
 obj/*
+orbprop
+propagations/*
