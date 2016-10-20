@@ -315,7 +315,7 @@ int main(int argc, char **argv)
                         fprintf(output_file, "File generation time,%s\n", time_formated);
                         fprintf(output_file, "Time (start),%lu\n", prop_time_start);
                         fprintf(output_file, "Time (end),%lu\n", prop_time_end);
-                        fprintf(output_file, "Time (step),%lu\n", prop_time_end);
+                        fprintf(output_file, "Time (step),%lu\n", prop_time_step);
                         fprintf(output_file, "Points,%d\n", prop_n_points);
                         fprintf(output_file, "Time,Timestamp,Latitude,Longitude,x,y,z,vx,vy,vz\n");
 
