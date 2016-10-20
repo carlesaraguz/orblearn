@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     prop_time_end   = prop_time_start + 60000;
     prop_time_step  = 60;
     prop_n_points   = -1;
-    tmp = gmtime(&prop_time_start);
+    tmp = localtime(&prop_time_start);
     strftime(time_formated, 21, "%Y-%m-%d_%H%M%S", tmp);
     output_path_root = "propagations/" + string(time_formated);
     input_path = "tle_collections";
@@ -176,12 +176,12 @@ int main(int argc, char **argv)
     tmp = gmtime(&prop_time_start);
     strftime(time_formated, 21, "%Y-%m-%d %T", tmp);
     julian_days = tmp->tm_yday + tmp->tm_hour/24.0 + tmp->tm_min/(24.0*60.0) + tmp->tm_sec/(24.0*60.0*60.0);
-    cout << "  T(start): " << prop_time_start << " (" << time_formated << ", Julian date: " << (1900 + tmp->tm_year) << ", " << julian_days << ")" << endl;
+    cout << "  T(start): " << prop_time_start << " (" << time_formated << " UTC, Julian date: " << (1900 + tmp->tm_year) << ", " << julian_days << ")" << endl;
 
     tmp = gmtime(&prop_time_end);
     strftime(time_formated, 21, "%Y-%m-%d %T", tmp);
     julian_days = tmp->tm_yday + tmp->tm_hour/24.0 + tmp->tm_min/(24.0*60.0) + tmp->tm_sec/(24.0*60.0*60.0);
-    cout << "  T(end)  : " << prop_time_end << " (" << time_formated << ", Julian date: " << (1900 + tmp->tm_year) << ", " << julian_days << ")" << endl;
+    cout << "  T(end)  : " << prop_time_end << " (" << time_formated << " UTC, Julian date: " << (1900 + tmp->tm_year) << ", " << julian_days << ")" << endl;
     cout << "  T(step) : " << prop_time_step << " seconds (" << (prop_time_step/60.0) <<" min.)" << endl;
     cout << "  Span    : " << ((prop_time_end - prop_time_start) / 3600.0) << " hours (" << ((prop_time_end - prop_time_start) / 3600.0)/24.0 << " days)." << endl;
     cout << "  Output  : " << prop_n_points << " points." << endl << endl;
@@ -309,6 +309,14 @@ int main(int argc, char **argv)
                         }
 
                         /* Write CSV headers to the output file: */
+                        time_t current_local_time = time(NULL);
+                        tmp = localtime(&current_local_time);
+                        strftime(time_formated, 21, "%Y-%m-%d %T", tmp);
+                        fprintf(output_file, "File generation time,%s\n", time_formated);
+                        fprintf(output_file, "Time (start),%lu\n", prop_time_start);
+                        fprintf(output_file, "Time (end),%lu\n", prop_time_end);
+                        fprintf(output_file, "Time (step),%lu\n", prop_time_end);
+                        fprintf(output_file, "Points,%d\n", prop_n_points);
                         fprintf(output_file, "Time,Timestamp,Latitude,Longitude,x,y,z,vx,vy,vz\n");
 
                         int step_count = 1;
