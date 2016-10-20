@@ -2,3 +2,4 @@ orbitTools/cppOrbitTools.zip
 obj/*
 orbprop
 propagations/*
+tle_collections/*

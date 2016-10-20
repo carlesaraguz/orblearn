@@ -212,7 +212,7 @@ int main(int argc, char **argv)
         }
         fclose(conf_file);
         if(norad_ids.size() > 0) {
-            cout << "  " << norad_ids.size() << " NORAD identifiers/orbits will be propagated." << endl;
+            cout << "  " << norad_ids.size() << " NORAD identifiers/orbits will be propagated." << endl << endl;
         } else {
             cerr << DBG_REDD "  WARNING: No NORAD identifiers have been set. This program will end now." DBG_NOCOLOR << endl;
             return -1;
@@ -267,6 +267,8 @@ int main(int argc, char **argv)
                             sat_identifier = tle_line2.substr(2, 5);
                             /* Check whether this TLE has to be propagated or not: */
                             if(norad_ids.find(sat_identifier) != norad_ids.end()) {
+                                /* This ID will no longer be found (in case of repeated satellites in different TLE files). */
+                                norad_ids.erase(norad_ids.find(sat_identifier));
                                 /* Create/open file: */
                                 output_path = output_path_root + "/" + sat_identifier + ".prop";
                                 if((output_file = fopen(output_path.c_str(), "w+")) == NULL) {
@@ -368,7 +370,15 @@ int main(int argc, char **argv)
             }
         }
         closedir(tle_directory);
-        cout << "Done!" << endl;
+        if(norad_ids.size() > 0) {
+            cout << "TLE file scanning has finished. However, the following NORAD ID's could not be found:";
+            for (set<string>::iterator it = norad_ids.begin(); it != norad_ids.end(); ++it) {
+                cout << " " << *it;
+            }
+            cout << endl;
+        } else {
+            cout << "Done!" << endl;
+        }
     } else {
         cerr << DBG_REDD "  ERROR: Unable to open TLE collection directory: " << input_path << DBG_NOCOLOR << endl;
     }
