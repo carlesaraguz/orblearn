@@ -1,5 +1,19 @@
 function [d, d_idx, s_ids, p_step] = orblearnLoad(path_to_props)
-%LOAD Loads all propagation data from the specified folder and returns distance vectors.
+% ORBLEARNLOAD loads all propagation data (*.prop files) from the specified directory and returns
+%   the cross-distance vectors.
+%
+% Usage:  [d, d_idx, s_ids, p_step] = orblearnLoad("path/to/propagations/folder/")
+%
+%   where         d ->  The cross distances vectors for all pairs of satellites.
+%             d_idx ->  A Look-Up-Table that returns the cross-distance row/column correspondance
+%                       with any given pair of satellites. E.g. d_idx(2, 5) = 3, d(3, :) is the
+%                       cross-distance vector that we were looking for.
+%             s_ids ->  A Look-Up-Table to link NORAD ID with row/column of any given satellite.
+%            p_step ->  The propagation step (in seconds) for each cross distance vector.
+%
+% Remarks: p_step is not checked when calculating cross distances (i.e. propagations are not
+%   interpolated), therefore imposing that ALL *.prop files have to have the same number of steps
+%   and must be calculated with the same delta-t.
 
     search_path = strcat(path_to_props, "*.prop");
     csvfiles = dir(search_path);            % Find all propagation files in this folder.
