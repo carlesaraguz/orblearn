@@ -86,8 +86,9 @@ int main(int argc, char **argv)
     char time_formated[21];     /* Time in the format "yyyy-mm-dd hh:mm:ss"                       */
     double julian_days;         /* Time in Julian days (debug purposes).                          */
     bool verbose = false;       /* Whether to print all data points as they are generated.        */
-    set<string> norad_ids;      /* The TLE ID's that will be propagated.                          */
-    char id_str[6];             /* A single NORAD ID scanned from the config. file.               */
+    set<int> norad_ids;         /* The TLE ID's that will be propagated.                          */
+    int norad_id_single;        /* A single NORAD ID scanned from the config. file.               */
+    char str_aux[500];          /* An auxiliary char pointer. Debug purposes.                     */
 
     /* Setup the default configuration values: */
     prop_time_start = time(NULL);
@@ -200,14 +201,14 @@ int main(int argc, char **argv)
     if((conf_file = fopen(CONF_FILE_PATH, "r")) != NULL) {
         while(fgets(file_line, 200, conf_file) != NULL) {
             line_count++;
-            if(sscanf(file_line, "%[0123456789]", id_str) > 0) {
-                cout << "  NORAD Id: " << id_str << endl;
-                norad_ids.insert(string(id_str));
+            if(sscanf(file_line, "%d", &norad_id_single) > 0) {
+                norad_ids.insert(norad_id_single);
             } else {
-                /* Dirty trick to get rid of line-feed character. */
-                if(sscanf(file_line, "%s", id_str) > 0) {
-                    cerr << DBG_REDD "  WARNING: Malformed configuration parameter in line " << line_count << ": \"" << id_str << "\"" << endl;
-                } /* else --> Empty line. */
+                if(sscanf(file_line, "%*[ #] %s", str_aux) > 0) { /* Commented line. Will be skipped*/
+                    /* No nothing. */
+                } else if(sscanf(file_line, "%s", str_aux) > 0) { /* Dirty trick to get rid of line-feed character. */
+                    cerr << DBG_REDD "  WARNING: Malformed configuration parameter in line " << line_count << ": \"" << str_aux << "\"" DBG_NOCOLOR << endl;
+                } /* else --> Empty line. Do nothing. */
             }
         }
         fclose(conf_file);
@@ -225,7 +226,7 @@ int main(int argc, char **argv)
 
     /* Internal set-up: ------------------------------------------------------------------------- */
     char sat_name[25];
-    string sat_identifier;
+    int sat_identifier;
     line_count = 0;
 
     /* Create results folder: */
@@ -264,13 +265,13 @@ int main(int argc, char **argv)
 
                         /* At this point, three lines have been read: check that they are well formed. */
                         if(tle_line2.substr(2, 5) == tle_line3.substr(2, 5)) {
-                            sat_identifier = tle_line2.substr(2, 5);
+                            sat_identifier = stoi(tle_line2.substr(2, 5), NULL);
                             /* Check whether this TLE has to be propagated or not: */
                             if(norad_ids.find(sat_identifier) != norad_ids.end()) {
                                 /* This ID will no longer be found (in case of repeated satellites in different TLE files). */
                                 norad_ids.erase(norad_ids.find(sat_identifier));
                                 /* Create/open file: */
-                                output_path = output_path_root + "/" + sat_identifier + ".prop";
+                                output_path = output_path_root + "/" + to_string(sat_identifier) + ".prop";
                                 if((output_file = fopen(output_path.c_str(), "w+")) == NULL) {
                                     cerr << DBG_REDD "Unable to open file " << output_path << DBG_NOCOLOR << endl;
                                     continue;
@@ -380,7 +381,7 @@ int main(int argc, char **argv)
         closedir(tle_directory);
         if(norad_ids.size() > 0) {
             cout << "TLE file scanning has finished. However, the following NORAD ID's could not be found:";
-            for (set<string>::iterator it = norad_ids.begin(); it != norad_ids.end(); ++it) {
+            for (set<int>::iterator it = norad_ids.begin(); it != norad_ids.end(); ++it) {
                 cout << " " << *it;
             }
             cout << endl;
