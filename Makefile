@@ -4,10 +4,11 @@
 
 # Application that you want to compile and link. Must have the same name as C file containing
 # the 'main()' function.
-APPLICATION = orbprop
+APPLICATION_1 = orbprop
+APPLICATION_2 = satfilt
 
 # Source files (including the main C file)
-SOURCES = orbprop.cpp \
+SOURCES_1 = orbprop.cpp \
           cOrbit.cpp \
           cEci.cpp \
           cJulian.cpp \
@@ -18,7 +19,10 @@ SOURCES = orbprop.cpp \
           cSite.cpp \
           cTle.cpp \
           cVector.cpp \
-          globals.cpp
+          globals.cpp  
+
+SOURCES_2 = globals.cpp \
+          satfilt.cpp
 
 
 # Paths to search the sources (separated by a colon ':')
@@ -39,7 +43,8 @@ MV            := 1.5.5
 TOOLCHAIN     := $(CC_HOST)
 BINDIR        := .
 OBJDIR        := obj
-OBJS          := $(addprefix $(OBJDIR)/,$(SOURCES:%.cpp=%.o))
+OBJS_1        := $(addprefix $(OBJDIR)/,$(SOURCES_1:%.cpp=%.o))
+OBJS_2        := $(addprefix $(OBJDIR)/,$(SOURCES_2:%.cpp=%.o))
 OBJSLF         = $(addprefix '\n------------:',$(OBJS)])
 CC_BASE_DIR   := $(subst -g++,,$(TOOLCHAIN))
 CC_BASE_DIR   := $(subst g++,,$(CC_BASE_DIR))
@@ -50,20 +55,26 @@ BASIC_CFLAGS   = -Wall -Wno-reorder -std=c++11
 
 
 ifneq ($(CONF),quiet)
-all: show_config | $(APPLICATION)
+all: show_config | $(APPLICATION_1) $(APPLICATION_2)
 else
-all: $(APPLICATION)
+all: $(APPLICATION_1) $(APPLICATION_2)
 endif
 
 $(OBJDIR)/%.o : %.cpp
 	@echo -n -e '---------: COMPILING $< -> $@ : '
 	@$(TOOLCHAIN) -c $< -o $@ $(BASIC_CFLAGS) $(EXTRACFLAGS) && echo 'done.'
 
-$(APPLICATION) : $(OBJS) | $(BINDIR) $(OBJDIR)
+$(APPLICATION_1) : $(OBJS_1) | $(BINDIR) $(OBJDIR)
 	@echo -n -e '---------: LINKING : '
-	@$(TOOLCHAIN) $(OBJS) -o $@ $(BASIC_LDFLAGS) $(EXTRALDFLAGS) && echo 'done.'
+	@$(TOOLCHAIN) $(OBJS_1) -o $@ $(BASIC_LDFLAGS) $(EXTRALDFLAGS) && echo 'done.'
 
-$(OBJS): | $(BINDIR) $(OBJDIR)
+$(APPLICATION_2) : $(OBJS_2) | $(BINDIR) $(OBJDIR)
+	@echo -n -e '---------: LINKING : '
+	@$(TOOLCHAIN) $(OBJS_2) -o $@ $(BASIC_LDFLAGS) $(EXTRALDFLAGS) && echo 'done.'	
+
+$(OBJS_1): | $(BINDIR) $(OBJDIR)
+
+$(OBJS_2): | $(BINDIR) $(OBJDIR)
 
 $(OBJDIR):
 	@mkdir -p $(OBJDIR)
@@ -72,17 +83,20 @@ $(BINDIR):
 	@mkdir -p $(BINDIR)
 
 show_config:
-	@echo '---------: APPLICATION  : $(APPLICATION)'
-	@echo '---------: OBJS         : $(SOURCES:%.c=%.o)'
-	@echo '---------: TOOLCHAIN    : $(TOOLCHAIN)'
-	@echo '---------: EXTRACFLAGS  : $(EXTRACFLAGS)'
-	@echo '---------: EXTRALDFLAGS : $(EXTRALDFLAGS)'
-	@echo '---------: CONFIG.      : $(CONF)'
-	@echo '---------: MAKEFILE VER.: $(MV)'
+	@echo '---------: APPLICATION_1 : $(APPLICATION_1)'
+	@echo '---------: APPLICATION_2 : $(APPLICATION_2)'
+	@echo '---------: OBJS_1        : $(SOURCES_1:%.c=%.o)'
+	@echo '---------: OBJS_2        : $(SOURCES_2:%.c=%.o)'
+	@echo '---------: TOOLCHAIN    	: $(TOOLCHAIN)'
+	@echo '---------: EXTRACFLAGS  	: $(EXTRACFLAGS)'
+	@echo '---------: EXTRALDFLAGS 	: $(EXTRALDFLAGS)'
+	@echo '---------: CONFIG.      	: $(CONF)'
+	@echo '---------: MAKEFILE VER.	: $(MV)'
 	@echo -n '---------: ' && date +"%Y/%m/%d   : %T"
 
 clean:
-	@echo -n '---------: REMOVING $(BINDIR)/$(APPLICATION)...' && rm $(BINDIR)/$(APPLICATION) -f && echo 'done.'
+	@echo -n '---------: REMOVING $(BINDIR)/$(APPLICATION_1)...' && rm $(BINDIR)/$(APPLICATION_1) -f && echo 'done.'
+	@echo -n '---------: REMOVING $(BINDIR)/$(APPLICATION_2)...' && rm $(BINDIR)/$(APPLICATION_2) -f && echo 'done.'
 	@echo -n '---------: REMOVING $(OBJDIR)...' && rm $(OBJDIR) -r -f && echo 'done.'
 
 cleanall: | clean
