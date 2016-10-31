@@ -55,5 +55,5 @@ Example:
 
     $ ./satfilt -t tle_collections 
     $ octave --no-gui
-    $ num_groups = 10;
+    $ >> num_groups = 10;
     $ >> satfilt('./database/<date>/', num_groups);
