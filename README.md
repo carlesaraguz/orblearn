@@ -27,3 +27,33 @@ Example:
 
     $ ./orbprop -t tle_collections -s $(date +%s) -e $(($(date +%s)+3600)) -d 30
     $ ./orbprop -t tle_collections -p 1440
+
+# C++/Octave Satellite filter
+
+satfilt is a simple program that allows to filter up to num_groups satellites with the 6 fundamental orbit parameters criterion.
+This tool will generate a CSV file with all TLE found in the input and one file with the filtered satellites information for each parameter
+(this files are presented in a way to be easily added to the OrbProp config file).
+
+## How to build
+
+A Makefile is provided in order to build the sources easily. Note that the user needs to have GNU C++ compiler (`g++`) and GNU Make installed to build the sources. satfilt sources will only compile and run in Linux machines; Windows or Mac support is not provided. In order to build the sources, the following targets are provided:
+
+    make all        # Will build the sources.
+    make clean      # Removes binary and objects folder.
+    make cleanall   # Removes binary, objects folder and the default propagations folder.
+
+## Usage
+
+satfit expects at least a collection of TLE's in a single file. In order to configure the filtering, the following arguments are accepted:
+
+ *  `-t <Path to TLE folder>`: Path to the Two-Line Elements collection file (**default**: `./tle_collections`).
+ *  `-o <Path to the output folder>`: Path to the results folder. If it doesn't exist, it'll be created. (**default**: `./database/`) .
+ *  `-v`: Verbose; will output all satellite information as it generate it.
+ *  `-h`: Shows this help.
+
+Example:
+
+    $ ./satfilt -t tle_collections 
+    $ octave --no-gui
+    $ num_groups = 10;
+    $ >> satfilt('./database/<date>/', num_groups);
