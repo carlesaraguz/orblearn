@@ -100,7 +100,7 @@ int main(int argc, char **argv){
     input_path = "tle_collections";
 
     /* Configuration based on program arguments: ------------------------------------------------ */
-    if(argc > 1)
+    if(argc >= 1)
     {
         /*  OPTION      VALUE       DESCRIPTION:
          *  -t          folder path Path to the TLE folder.

@@ -56,8 +56,12 @@ BASIC_CFLAGS   = -Wall -Wno-reorder -std=c++11
 
 ifneq ($(CONF),quiet)
 all: show_config | $(APPLICATION_1) $(APPLICATION_2)
+orbprop: show_config | $(APPLICATION_1)
+satfilt: show_config | $(APPLICATION_2)
 else
 all: $(APPLICATION_1) $(APPLICATION_2)
+orbprop: $(APPLICATION_1)
+satfilt: $(APPLICATION_2)
 endif
 
 $(OBJDIR)/%.o : %.cpp
@@ -101,3 +105,4 @@ clean:
 
 cleanall: | clean
 	@echo -n '---------: REMOVING old propagations...' && rm propagations -rf && echo 'done.'
+	@echo -n '---------: REMOVING all filtered data...' && rm database -rf && echo 'done.'
