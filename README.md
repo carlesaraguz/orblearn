@@ -58,7 +58,6 @@ Example:
 
     $ ./satfilt -t tle_collections 
     $ octave --no-gui
-    $ >> num_groups = 10;
     $ >> satfilt('./database/<date>/', 5, 15, 250, 5, -1);
 
 
@@ -70,4 +69,4 @@ A Makefile is provided in order to build the sources easily. Note that the user 
     make orbprop    # Will build the Orbit Propagator only.
     make satfilt    # Will build the Satellite Filter only.
     make clean      # Removes binary and objects folder.
-    make cleanall   # Removes binary, objects folder and the default propagations folder.
+    make cleanall   # Removes binary, objects folder, the default propagations folder and the database folder.
