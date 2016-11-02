@@ -2,8 +2,10 @@ function [ ] = plotCrossDistances(d, d_idx, p_step, s_ids, s_ids1, s_ids2, time_
 %PLOTS the cross distances between the satellites with NORAD's id s_ids1 and s_ids2 in time_start and time_end
 
     cross_distance = d(d_idx(find(s_ids == s_ids1), find(s_ids == s_ids2)), :);
-    time_step_sec  = p_step(d_idx(find(s_ids == s_ids1), find(s_ids == s_ids2)));
-
+    time_step_sec  = p_step(find(s_ids == s_ids1));
+    if time_step_sec != p_step(find(s_ids == s_ids2))
+        printf("Propagation steps differ. Interpolation not supported, exiting now\n");
+    end
     time_max_days = length(cross_distance) * time_step_sec / (60 * 60 * 24);
     if time_end_days > time_max_days
         clear time_end_days

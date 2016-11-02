@@ -14,7 +14,7 @@ A Makefile is provided in order to build the sources easily. Note that the user 
 
 OrbProp expects at least a TLE file (or a collection of TLE's in a single file.) In order to configure the propagation, the following arguments are accepted:
 
-* `-t <Path to TLE folder>`: Path to the Two-Line Elements collection file (**default**: `./collection.tle`).
+* `-t <Path to TLE folder>`: Path to the Two-Line Elements collection file (**default**: `./tle_collections/`).
 * `-o <Path to output folder>`: Path to the results folder. If it doesn't exist, it'll be created. (**default**: `./propagations/`)
 * `-s <UNIX time>`: Orbit propagation start time (**default**: current timestamp).
 * `-e <UNIX time>`: Orbit propagation end time (**default**: current timestamp + 1000 minutes).
