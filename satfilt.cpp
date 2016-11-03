@@ -179,7 +179,7 @@ int main(int argc, char **argv){
                             line_count++;
 
                             /* Getting satellite information. */
-                            norad = stod(tle_line2.substr(3,5));
+                            norad = stod(tle_line2.substr(2,5));
                             inc = stod(tle_line3.substr(9,8));
                             ecc = stod(tle_line3.substr(26,7)) / 10000000;
                             period = (1 / stod(tle_line3.substr(52,11))) * 24 * 60;
