@@ -48,6 +48,8 @@ function [ sat ] = read_sat(curr_path, hist_path)
             jj = jj + 1;
         end
         fclose(fid);
-    end    
+    end  
+  
+    sat = sat(find(sat(:,1) != 0),:);
 
 end
