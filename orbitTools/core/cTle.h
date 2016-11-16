@@ -1,8 +1,8 @@
 //
-// cTle.h 
+// cTle.h
 //
 // This class will accept a single set of two-line elements and then allow
-// a client to request specific fields, such as epoch, mean motion, 
+// a client to request specific fields, such as epoch, mean motion,
 // etc., from the set.
 //
 // Copyright 1996-2012 Michael F. Henry
@@ -10,10 +10,11 @@
 #pragma once
 
 #include "globals.h"
+#include "cJulian.h"
 
-namespace Zeptomoby 
+namespace Zeptomoby
 {
-namespace OrbitTools 
+namespace OrbitTools
 {
 
 /////////////////////////////////////////////////////////////////////////////
@@ -23,7 +24,7 @@ public:
    cTle(string&, string&, string&);
    cTle(const cTle &tle);
    ~cTle();
-   
+
    enum eTleLine
    {
       LINE_ZERO,
@@ -60,7 +61,7 @@ public:
       U_NATIVE,         // TLE format native units (no conversion)
       U_LAST            // MUST be last
    };
-   
+
    static bool IsValidLine(string&, eTleLine);
 
    double GetField(eField fld,               // which field to retrieve
@@ -68,6 +69,18 @@ public:
                    string *pstr = NULL,      // return ptr for str value
                    bool bStrUnits = false)   // 'true': append units to str val
                    const;
+
+   /** MODIFICATION BY: C. Araguz ******************************************************************
+    *   This new method and new operator have been included for convenience (i.e. they are needed
+    *   in custom classes).
+    */
+   time_t getTLEtime() const;
+   // bool operator<(Zeptomoby::OrbitTools::cTle const & tle) const
+   // {
+   //     return this->getTLEtime() < tle.getTLEtime();
+   // }
+   /***********************************************************************************************/
+
 
    string Name()  const { return m_strLine0; }
    string Line1() const { return m_strLine1; }
@@ -113,12 +126,12 @@ private:
 //  AAAAAAAAAAAAAAAAAAAAAA
 //  1 NNNNNU NNNNNAAA NNNNN.NNNNNNNN +.NNNNNNNN +NNNNN-N +NNNNN-N N NNNNN
 //  2 NNNNN NNN.NNNN NNN.NNNN NNNNNNN NNN.NNNN NNN.NNNN NN.NNNNNNNNNNNNNN
-//  
+//
 //  Line 0 is a twenty-two-character name.
-// 
+//
 //   Lines 1 and 2 are the standard Two-Line Orbital Element Set Format identical
 //   to that used by NORAD and NASA.  The format description is:
-//      
+//
 //     Line 1
 //     Column    Description
 //     01-01     Line Number of Element Data
@@ -151,11 +164,11 @@ private:
 //     53-63     Mean Motion [Revs per day]
 //     64-68     Revolution number at epoch [Revs]
 //     69-69     Check Sum (Modulo 10)
-//        
+//
 //     All other columns are blank or fixed.
-//          
+//
 // Example:
-//      
+//
 // NOAA 6
 // 1 11416U          86 50.28438588 0.00000140           67960-4 0  5293
 // 2 11416  98.5105  69.3305 0012788  63.2828 296.9658 14.24899292346978

@@ -22,9 +22,9 @@ function [d, d_idx, s_ids, p_step] = orblearnLoad(path_to_props)
     if numel(csvfiles) > 1
         for ii = 1:numel(csvfiles)
             printf("Loading data from %s\n", strcat(path_to_props, csvfiles(ii).name));
-            s(:,:,ii) = csvread(strcat(path_to_props, csvfiles(ii).name))(7:end,5:7);   % Load data.
+            s(:,:,ii) = csvread(strcat(path_to_props, csvfiles(ii).name))(7:end, 5:7);  % Load data.
             s_ids(ii) = sscanf((csvfiles(ii).name), "%d");                              % Save ID.
-            p_step(ii) = csvread(strcat(path_to_props, csvfiles(ii).name))(4,2);        % Save step.
+            p_step(ii) = csvread(strcat(path_to_props, csvfiles(ii).name))(4, 2);       % Save step.
         end
 
         n_sats = size(s,3);                                     % Number of satellites.

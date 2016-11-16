@@ -23,41 +23,33 @@ using namespace std;
 
 void printHelp(void)
 {
-    /*  OPTION      VALUE       DESCRIPTION:
-     *  -t          folder path Path to the TLE folder.
-     *  -o          folder paht Path to the results folder.
-     *  -s          UNIX time   Propagation start.
-     *  -e          UNIX time   Propagation end.
-     *  -d          integer     A positive integer representing the amount of seconds of resolution (i.e. propagation step).
-     *  -h          (none)      Shows the help menu.
-     *  -v          (none)      Verbose: outputs all data points as it generates them.
+    /*  OPTION      VALUE           DESCRIPTION:
+     *  -t          folder path     Path to the TLE folder.
+     *  -o          folder path     Path to the results folder.
+     *  -C          (none)          TLE collections will be looked for in the `current` folder.
+     *  -H          (none)          TLE collections will be looked for in the `historic` folder.
+     *  -s          UNIX time       Propagation start.
+     *  -e          UNIX time       Propagation end.
+     *  -d          integer         A positive integer representing the amount of seconds of
+     *                              resolution (i.e. propagation step).
+     *  -j          integer         Number of threads with which to perform the propagation.
+     *  -h          (none)          Shows the help menu.
+     *  -v          (none)          Verbose: outputs all data points as it generates them.
      */
     cout << "List of possible arguments:" << endl;
     cout << DBG_WHITEB "OPTION   VALUE                 DESCRIPTION" DBG_NOCOLOR << endl;
     cout << DBG_REDD   "  -t     " DBG_YELLOWD "Path to TLE folder    " DBG_NOCOLOR "Path to a folder containing (only) Two-Line Elements collection files." << endl;
+    cout << DBG_REDD   "  -C     " DBG_YELLOWD "(none)                " DBG_NOCOLOR "TLE collections will be looked for in <path>/current (default)." << endl;
+    cout << DBG_REDD   "  -H     " DBG_YELLOWD "(none)                " DBG_NOCOLOR "TLE collections will be looked for in <path>/historic." << endl;
     cout << DBG_REDD   "  -o     " DBG_YELLOWD "Path to folder        " DBG_NOCOLOR "Path to the results folder (if it doesn't exist, it'll be created)." << endl;
     cout << DBG_REDD   "  -s     " DBG_YELLOWD "UNIX time             " DBG_NOCOLOR "Orbit propagation start time." << endl;
     cout << DBG_REDD   "  -e     " DBG_YELLOWD "UNIX time             " DBG_NOCOLOR "Orbit propagation end time." << endl;
     cout << DBG_REDD   "  -d     " DBG_YELLOWD "integer               " DBG_NOCOLOR "Positive amount of seconds between each propagation point." << endl;
+    cout << DBG_REDD   "  -j     " DBG_YELLOWD "integer               " DBG_NOCOLOR "Number of threads with which to perform the propagation." << endl;
     cout << DBG_REDD   "  -v     " DBG_YELLOWD "(none)                " DBG_NOCOLOR "Verbose; will output all data points as it generates them." << endl;
     cout << DBG_REDD   "  -h     " DBG_YELLOWD "(none)                " DBG_NOCOLOR "Shows this help." << endl;
 }
 
-void printHeader(bool first)
-{
-    if(first) {
-        cout << "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓" << endl;
-    } else {
-        cout << "┢━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╈━━━━━━━━━━━━━━━━━━━━━━━━━╈━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╈━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┪" << endl;
-    }
-    cout << "┃ Time stamp                       ┃         LAT         LON ┃         ECI X         ECI Y         ECI Z ┃      vel X      vel Y      vel Z ┃" << endl;
-    cout << "┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩" << endl;
-}
-
-void printFooter(void)
-{
-    cout << "└──────────────────────────────────┴─────────────────────────┴───────────────────────────────────────────┴──────────────────────────────────┘" << endl;
-}
 
 int main(int argc, char **argv)
 {
@@ -66,17 +58,12 @@ int main(int argc, char **argv)
     time_t prop_time_start;     /* In seconds                                                     */
     time_t prop_time_end;       /* In seconds                                                     */
     time_t prop_time_step;      /* In seconds                                                     */
-    time_t prop_time_curr;      /* Simulation's current time.                                     */
-    time_t tle_time;            /* Time reference in the TLE file.                                */
     string input_path;          /* Input path where TLE files are located.                        */
-    string tle_file_path;       /* The TLE file name/path.                                        */
     string output_path_root;    /* Path folder for the resulting files.                           */
     string output_path;         /* Output path for the resulting files.                           */
-    DIR * tle_directory;        /* TLE directory.                                                 */
-    struct dirent * dir_entry;  /* File within the TLE directory.                                 */
+    vector<string> tle_files;   /* A vector of TLE file paths (<*>/<*>/<*>.txt)                   */
     FILE * tle_file;            /* TLE input file.                                                */
     FILE * conf_file;           /* Program configuration file.                                    */
-    FILE * output_file;         /* Resulting output file.                                         */
     char file_line[200];        /* One single line from an open file.                             */
     int line_count = 0;         /* Line counter (debug purposes).                                 */
     string tle_line1;           /* Line 1 in the TLE file.                                        */
@@ -86,8 +73,10 @@ int main(int argc, char **argv)
     char time_formated[21];     /* Time in the format "yyyy-mm-dd hh:mm:ss"                       */
     double julian_days;         /* Time in Julian days (debug purposes).                          */
     bool verbose = false;       /* Whether to print all data points as they are generated.        */
-    set<int> norad_ids;         /* The TLE ID's that will be propagated.                          */
-    int norad_id_single;        /* A single NORAD ID scanned from the config. file.               */
+    unordered_map<int, TLEHistoricSet> tle_data; /* TLE data for each NORAD ID and with
+                                                  * historical records.
+                                                  */
+    int norad_id;               /* A NORAD ID scanned from the config. file.                      */
     char str_aux[500];          /* An auxiliary char pointer. Debug purposes.                     */
 
     /* Setup the default configuration values: */
@@ -98,16 +87,20 @@ int main(int argc, char **argv)
     tmp = localtime(&prop_time_start);
     strftime(time_formated, 21, "%Y-%m-%d_%H%M%S", tmp);
     output_path_root = "propagations/" + string(time_formated);
-    input_path = "tle_collections";
+    input_path = "tle_collections/current";
 
     /* Configuration based on program arguments: ------------------------------------------------ */
     if(argc > 1) {
         /*  OPTION      VALUE           DESCRIPTION:
          *  -t          folder path     Path to the TLE folder.
-         *  -o          folder paht     Path to the results folder.
+         *  -o          folder path     Path to the results folder.
+         *  -c          (none)          TLE collections will be looked for in the `current` folder.
+         *  -H          (none)          TLE collections will be looked for in the `historic` folder.
          *  -s          UNIX time       Propagation start.
          *  -e          UNIX time       Propagation end.
-         *  -d          integer         A positive integer representing the amount of seconds of resolution (i.e. propagation step).
+         *  -d          integer         A positive integer representing the amount of seconds of
+         *                              resolution (i.e. propagation step).
+         *  -j          integer         Number of threads with which to perform the propagation.
          *  -h          (none)          Shows the help menu.
          *  -v          (none)          Verbose: outputs all data points as it generates them.
          */
@@ -159,6 +152,12 @@ int main(int argc, char **argv)
                 arg_iterator++;
             } else if(str == "-v") {
                 verbose = true;
+            } else if(str == "-C") {
+                input_path = "tle_collections/current";
+            } else if(str == "-H") {
+                input_path = "tle_collections/historic";
+            } else if(str == "-j") {
+                cerr << DBG_REDD "Multi-threaded propagation is still not supported." DBG_NOCOLOR << endl;
             } else {
                 cout << "Unknown argument: \'" << str << "\'" << endl;
                 printHelp();
@@ -167,6 +166,7 @@ int main(int argc, char **argv)
             arg_iterator++;
         }
     }
+
 
     if(prop_n_points > 0) {
         prop_time_end = prop_time_start + prop_time_step * prop_n_points;
@@ -192,8 +192,8 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    if( ((prop_time_end - prop_time_start) / 3600.0) > 48.0 ||
-        ((prop_time_end - prop_time_start) / prop_time_step) > 1e4) {
+    if( ((prop_time_end - prop_time_start) / 3600.0) > (24.0 * 60.0) ||
+        ((prop_time_end - prop_time_start) / prop_time_step) > 1e6) {
         cerr << DBG_REDD "  WARNING: With the given setup, the propagation will probably take a long time to compute." DBG_NOCOLOR << endl;
     }
 
@@ -201,8 +201,8 @@ int main(int argc, char **argv)
     if((conf_file = fopen(CONF_FILE_PATH, "r")) != NULL) {
         while(fgets(file_line, 200, conf_file) != NULL) {
             line_count++;
-            if(sscanf(file_line, "%d", &norad_id_single) > 0) {
-                norad_ids.insert(norad_id_single);
+            if(sscanf(file_line, "%d", &norad_id) > 0) {
+                tle_data.insert({norad_id, TLEHistoricSet(norad_id)});
             } else {
                 if(sscanf(file_line, "%*[ #] %s", str_aux) > 0) { /* Commented line. Will be skipped*/
                     /* No nothing. */
@@ -212,8 +212,8 @@ int main(int argc, char **argv)
             }
         }
         fclose(conf_file);
-        if(norad_ids.size() > 0) {
-            cout << "  " << norad_ids.size() << " NORAD identifiers/orbits will be propagated." << endl << endl;
+        if(tle_data.size() > 0) {
+            cout << "  " << tle_data.size() << " NORAD identifiers/orbits will be propagated." << endl;
         } else {
             cerr << DBG_REDD "  WARNING: No NORAD identifiers have been set. This program will end now." DBG_NOCOLOR << endl;
             return -1;
@@ -223,16 +223,162 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    /* Load TLE data from files: ---------------------------------------------------------------- */
+    struct linux_dirent {
+        long           d_ino;
+        off_t          d_off;
+        unsigned short d_reclen;
+        char           d_name[];
+    };
+
+    int tle_directory, tle_sub_directory;
+    int nread, nread_sub;
+    int bpos, bpos_sub;
+    char dents_buf[2048], dents_buf_sub[20148], d_type;
+    struct linux_dirent *d;
+
+    if((tle_directory = open(input_path.c_str(), O_RDONLY | O_DIRECTORY)) == -1) {
+        cout << DBG_REDD "  ERROR: Opening the TLE directory failed. Aborting." DBG_NOCOLOR << endl;
+        exit(-1);
+    }
+
+    while(1) {
+        nread = syscall(SYS_getdents, tle_directory, dents_buf, 2048);
+        if(nread == -1) {
+            cout << DBG_REDD "  ERROR: TLE directory scan failed. Aborting." DBG_NOCOLOR << endl;
+            exit(-1);
+        } else if(nread == 0) {
+            break;
+        }
+        for(bpos = 0; bpos < nread;) {
+            d = (struct linux_dirent *)(dents_buf + bpos);
+            d_type = *(dents_buf + bpos + d->d_reclen - 1);
+            bpos += d->d_reclen;
+            switch(d_type) {
+                case DT_DIR:
+                    if(strcmp(d->d_name, ".") && strcmp(d->d_name, "..")) {
+                        string subdir_path = input_path + "/" + string(d->d_name);
+                        if((tle_sub_directory = open(subdir_path.c_str(), O_RDONLY | O_DIRECTORY)) == -1) {
+                            cout << DBG_REDD "  ERROR: Opening the TLE sub-directory (" << subdir_path << ") failed. Aborting." DBG_NOCOLOR << endl;
+                            exit(-1);
+                        }
+                        while(1) {
+                            nread_sub = syscall(SYS_getdents, tle_sub_directory, dents_buf_sub, 2048);
+                            if(nread_sub == -1) {
+                                cout << DBG_REDD "  ERROR: TLE sub-directory scan failed. Aborting." DBG_NOCOLOR << endl;
+                                exit(-1);
+                            } else if(nread_sub == 0) {
+                                break;
+                            }
+                            for(bpos_sub = 0; bpos_sub < nread_sub;) {
+                                d = (struct linux_dirent *)(dents_buf_sub + bpos_sub);
+                                d_type = *(dents_buf_sub + bpos_sub + d->d_reclen - 1);
+                                bpos_sub += d->d_reclen;
+                                if(d_type == DT_REG) {
+                                    tle_files.push_back(subdir_path + "/" + string(d->d_name));
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case DT_REG:
+                    tle_files.push_back(input_path + "/" + string(d->d_name));
+                    break;
+                default:
+                    /* Ignored entries. */
+                    break;
+            }
+        }
+    }
+    cout << "  " << tle_files.size() << " TLE files have been found." << endl;
+
+    char sat_name[25];
+    int sat_identifier;
+    line_count = 0;
+    for(vector<string>::const_iterator f = tle_files.begin(); f != tle_files.end(); f++) {
+        if((tle_file = fopen((*f).c_str(), "r")) != NULL) {
+            /* Will look for TLE ID's and iterate files: -------------------------------- */
+            while(fgets(file_line, 80, tle_file) != NULL) {
+                if(sscanf(file_line, "%24[^\n\t\r]", sat_name) < 1) {
+                    cerr << DBG_REDD "  WARNING: Can't read satellite name, will try to continue." DBG_NOCOLOR << endl;
+                } else {
+                    tle_line1 = string(file_line);
+                }
+                line_count++;
+                if(fgets(file_line, 80, tle_file) != NULL) {
+                    tle_line2 = string(file_line);
+                } else {
+                    break;
+                }
+                line_count++;
+                if(fgets(file_line, 80, tle_file) != NULL) {
+                    tle_line3 = string(file_line);
+                } else {
+                    break;
+                }
+                line_count++;
+
+                /* At this point, three lines have been read: check that they are well formed. */
+                if(tle_line2.substr(2, 5) == tle_line3.substr(2, 5)) {
+                    sat_identifier = stoi(tle_line2.substr(2, 5), NULL);
+                    /* Check whether this TLE has to be propagated or not: */
+                    unordered_map<int, TLEHistoricSet>::iterator tle_data_it = tle_data.find(sat_identifier);
+                    if(tle_data_it != tle_data.end()) {
+                        TLEHistoricSet tlehs = tle_data_it->second;
+                        tlehs.addTLE(Zeptomoby::OrbitTools::cTle(tle_line1, tle_line2, tle_line3));
+                        tle_data_it->second = tlehs;
+                    }
+                } else {
+                    cerr << DBG_REDD "  Malformed TLE file. Error appears in lines " << (line_count - 3) << " to " << line_count << "." DBG_NOCOLOR << endl;
+                    break;
+                }
+            }
+            fclose(tle_file);
+
+        } else {
+            cerr << DBG_REDD "  ERROR: Could not open the TLE file (" << (*f) << ")." DBG_NOCOLOR << endl;
+            continue;
+        }
+    }
+    cout << endl;
+
+    /* Perform the propagations: ---------------------------------------------------------------- */
+    /* -- Create results folder: */
+    system(string("mkdir -p " + output_path_root).c_str()); /* Linux/Bash-specific. */
+    /* -- Propagate each individual orbit: */
+    for(auto t = tle_data.begin(); t != tle_data.end(); t++) {
+        try {
+            t->second.propagate(output_path_root, prop_time_start, prop_time_end, prop_time_step, prop_n_points, verbose);
+        } catch(exception& e) {
+            cerr << DBG_REDD "  Propagation of " << t->first << " throwed an EXCEPTION: " << e.what() << DBG_NOCOLOR << endl;
+        }
+    }
+
+    cout << "  Done." << endl;
+
+    exit(1);
+
+#if 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /* Internal set-up: ------------------------------------------------------------------------- */
     char sat_name[25];
     int sat_identifier;
     line_count = 0;
 
-    /* Create results folder: */
-    system(string("mkdir -p " + output_path_root).c_str()); /* Linux/Bash-specific. Will not work in
-                                                             * Windows or non-Bash environments.
-                                                             */
 
 
     if((tle_directory = opendir(input_path.c_str())) != NULL) {
@@ -270,12 +416,7 @@ int main(int argc, char **argv)
                             if(norad_ids.find(sat_identifier) != norad_ids.end()) {
                                 /* This ID will no longer be found (in case of repeated satellites in different TLE files). */
                                 norad_ids.erase(norad_ids.find(sat_identifier));
-                                /* Create/open file: */
-                                output_path = output_path_root + "/" + to_string(sat_identifier) + ".prop";
-                                if((output_file = fopen(output_path.c_str(), "w+")) == NULL) {
-                                    cerr << DBG_REDD "Unable to open file " << output_path << DBG_NOCOLOR << endl;
-                                    continue;
-                                }
+
                             } else {
                                 /* This TLE will be skipped. */
                                 continue;
@@ -289,86 +430,7 @@ int main(int argc, char **argv)
                         /* New cTLE object: */
                         Zeptomoby::OrbitTools::cTle tle_data(tle_line1, tle_line2, tle_line3);
 
-                        /* Create an Orbit object using the satellite TLE object. */
-                        Zeptomoby::OrbitTools::cOrbit orbit(tle_data);
-
-                        Zeptomoby::OrbitTools::cEciTime satellite = orbit.PositionEci(0.0);
-                        Zeptomoby::OrbitTools::cGeo proj_earth = Zeptomoby::OrbitTools::cGeo(satellite, satellite.Date());
-
-                        /* :: Warning ::
-                        *  ToTime() uses mktime to represent the time. This function represents the
-                        *  time in its LOCAL form.
-                        */
-                        tle_time = satellite.Date().ToTime();
-                        time_t current_prop_time_start = prop_time_start - tle_time;
-                        time_t current_prop_time_end   = prop_time_end - tle_time;
-
-                        cout << sat_identifier << " (" << output_path << "): " << sat_name << endl;
-
-                        if(verbose) {
-                            printHeader(true);
-                        }
-
-                        /* Write CSV headers to the output file: */
-                        time_t current_local_time = time(NULL);
-                        tmp = localtime(&current_local_time);
-                        strftime(time_formated, 21, "%Y-%m-%d %T", tmp);
-                        fprintf(output_file, "File generation time,%s\n", time_formated);
-                        fprintf(output_file, "Time (start),%lu\n", prop_time_start);
-                        fprintf(output_file, "Time (end),%lu\n", prop_time_end);
-                        fprintf(output_file, "Time (step),%lu\n", prop_time_step);
-                        fprintf(output_file, "Points,%d\n", prop_n_points);
-                        fprintf(output_file, "Time,Timestamp,Latitude,Longitude,x,y,z,vx,vy,vz\n");
-
-                        int step_count = 1;
-                        /* Iterate through time as defined in the input arguments: */
-                        for(int i = current_prop_time_start; i <= current_prop_time_end; i += prop_time_step)
-                        {
-                            if(verbose && !((++step_count) % 50)) {
-                                printHeader(false);
-                            }
-                            try {
-                                satellite = orbit.PositionEci(i/60.0);
-                                prop_time_curr = satellite.Date().ToTime();
-                                proj_earth = Zeptomoby::OrbitTools::cGeo(satellite, satellite.Date());
-                            } catch (exception& e) {
-                                cout << "Exception catched!" << endl;
-                                break;
-                            }
-
-                            tmp = localtime(&prop_time_curr);
-                            strftime(time_formated, 21, "%Y-%m-%d %T", tmp);
-                            fprintf(output_file, "%s,%10ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n",
-                            time_formated,
-                            prop_time_curr,
-                            proj_earth.LatitudeDeg(),
-                            (proj_earth.LongitudeDeg() < 180 ? proj_earth.LongitudeDeg() : proj_earth.LongitudeDeg()-360),
-                            satellite.Position().m_x,
-                            satellite.Position().m_y,
-                            satellite.Position().m_z,
-                            satellite.Velocity().m_x,
-                            satellite.Velocity().m_y,
-                            satellite.Velocity().m_z);
-
-                            if(verbose) {
-                                printf("│% 10ld (%s) │ % 11.6f % 11.6f │ % 13.6f % 13.6f % 13.6f │ % 10.6f % 10.6f % 10.6f │\n",
-                                prop_time_curr,
-                                time_formated,
-                                proj_earth.LatitudeDeg(),
-                                (proj_earth.LongitudeDeg() < 180 ? proj_earth.LongitudeDeg() : proj_earth.LongitudeDeg()-360),
-                                satellite.Position().m_x,
-                                satellite.Position().m_y,
-                                satellite.Position().m_z,
-                                satellite.Velocity().m_x,
-                                satellite.Velocity().m_y,
-                                satellite.Velocity().m_z);
-                            }
-
-                        }
-                        if(verbose) {
-                            printFooter();
-                        }
-                        fclose(output_file);
+sat_name
                     }
                     fclose(tle_file);
 
@@ -391,6 +453,6 @@ int main(int argc, char **argv)
     } else {
         cerr << DBG_REDD "  ERROR: Unable to open TLE collection directory: " << input_path << DBG_NOCOLOR << endl;
     }
-
+#endif
     return 0;
 }

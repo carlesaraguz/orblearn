@@ -12,8 +12,8 @@
  **************************************************************************************************/
 
 
-#ifndef __INCL_ORBPROP_
-#define __INCL_ORBPROP_
+#ifndef __ORBPROP__
+#define __ORBPROP__
 
 /*** INCLUDE SECTION ******************************************************************************/
 /* Standard C++11 libraries: */
@@ -22,16 +22,27 @@
 #include <cstdio>
 #include <string>
 #include <set>
+#include <vector>
+#include <unordered_map>
+#include <utility>
+
+/* Standard C libraries: */
+#include <dirent.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/syscall.h>
 #include <assert.h>
 #include <math.h>
-#include <sys/types.h>
-#include <dirent.h>
 
 /* Open-source NORAD SGP4 C++ Implementation library (by Michael F. Henry): */
 #include "stdafx.h"         /* orbitTools main header file. */
 #include "coreLib.h"        /* orbitTools core library.     */
 #include "orbitLib.h"       /* orbitTools orbit library.    */
 
+/* Custom classes: */
+#include "TLEHistoricSet.hpp"   /* Stores data TLE data when this data is fragmented in pieces. */
 
 /*** GLOBAL CONSTANTS *****************************************************************************/
 #define CONF_FILE_PATH  "orbprop.conf"
@@ -49,8 +60,7 @@
 
 
 /*** TYPEDEFS *************************************************************************************/
-typedef struct
-{
+typedef struct {
     double lat;
     double lon;
     double eci_x;
@@ -62,8 +72,10 @@ typedef struct
     long long time;
 } OrbitPropagation;
 
+
 /*** GLOBAL VARIABLES *****************************************************************************/
 
 /*** FUNCTIONS ************************************************************************************/
 
-#endif
+
+#endif /* __ORBPROP__ */

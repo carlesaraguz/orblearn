@@ -1,6 +1,6 @@
-#####################################################################################################
-# ENERGY MANAGER MAKEFILE                                                      v1.5.5 (17-nov-2014) #
-#####################################################################################################
+####################################################################################################
+# ORBIT LEARNER SUITE - Building rules                                        v1.0.0 (08-nov-2016) #
+####################################################################################################
 
 # Application that you want to compile and link. Must have the same name as C file containing
 # the 'main()' function.
@@ -8,15 +8,16 @@ APPLICATION = orbprop
 
 # Source files (including the main C file)
 SOURCES = orbprop.cpp \
+          TLEHistoricSet.cpp \
           cOrbit.cpp \
           cEci.cpp \
+          cTle.cpp \
           cJulian.cpp \
           cNoradBase.cpp \
           cNoradSDP4.cpp \
           cNoradSGP4.cpp \
           coord.cpp \
           cSite.cpp \
-          cTle.cpp \
           cVector.cpp \
           globals.cpp
 
@@ -28,15 +29,12 @@ VPATH = orbitTools/core:orbitTools/orbit
 EXTRACFLAGS = -I./orbitTools/core -I./orbitTools/orbit
 EXTRALDFLAGS =
 
-# Default configuration:
-CC_HOST=g++#        # Compiler for your architecture (usually: gcc)
-
 
 #####################################################################################################
 #####################################################################################################
 # Makefile configuration. Do not modify.
-MV            := 1.5.5
-TOOLCHAIN     := $(CC_HOST)
+MV            := 1.0.0
+TOOLCHAIN     := g++
 BINDIR        := .
 OBJDIR        := obj
 OBJS          := $(addprefix $(OBJDIR)/,$(SOURCES:%.cpp=%.o))

@@ -9,7 +9,7 @@
 
 #include "cTle.h"
 
-namespace Zeptomoby 
+namespace Zeptomoby
 {
 namespace OrbitTools
 {
@@ -75,12 +75,12 @@ cTle::~cTle()
 /////////////////////////////////////////////////////////////////////////////
 // GetField()
 // Return requested field as a double (function return value) or as a text
-// string (*pstr) in the units requested (eUnit). Set 'bStrUnits' to true 
+// string (*pstr) in the units requested (eUnit). Set 'bStrUnits' to true
 // to have units appended to text string.
 //
 // Note: numeric return values are cached; asking for the same field more
 // than once incurs minimal overhead.
-double cTle::GetField(eField   fld, 
+double cTle::GetField(eField   fld,
                       eUnits   units,    /* = U_NATIVE */
                       string  *pstr      /* = NULL     */,
                       bool     bStrUnits /* = false    */) const
@@ -92,7 +92,7 @@ double cTle::GetField(eField   fld,
    {
       // Return requested field in string form.
       *pstr = m_Field[fld];
-      
+
       if (bStrUnits)
       {
          *pstr += GetUnits(fld);
@@ -100,7 +100,7 @@ double cTle::GetField(eField   fld,
 
       TrimLeft (*pstr);
       TrimRight(*pstr);
-      
+
       return 0.0;
    }
    else
@@ -113,7 +113,7 @@ double cTle::GetField(eField   fld,
       {
          // Value not in cache; add it
          double valNative = atof(m_Field[fld].c_str());
-         double valConv   = ConvertUnits(valNative, fld, units); 
+         double valConv   = ConvertUnits(valNative, fld, units);
          m_mapCache[key]  = valConv;
 
          return valConv;
@@ -169,7 +169,7 @@ string cTle::GetUnits(eField fld)
          return strRevsPerDay;
 
       default:
-         return strNull;   
+         return strNull;
    }
 }
 
@@ -177,7 +177,7 @@ string cTle::GetUnits(eField fld)
 // ExpToAtof()
 // Converts TLE-style exponential notation of the form [ |-]00000[ |+|-]0 to a
 // form that is parse-able by the C-runtime function atof(). Assumes implied
-// decimal point to the left of the first number in the string, i.e., 
+// decimal point to the left of the first number in the string, i.e.,
 //       " 12345-3" =  0.12345e-3
 //       "-23429-5" = -0.23429e-5
 //       " 40436+1" =  0.40436e+1
@@ -211,21 +211,21 @@ void cTle::Initialize()
 {
    // Have we already been initialized?
    if (m_Field[FLD_NORADNUM].size()) { return; }
-   
+
    assert(!m_strLine1.empty());
    assert(!m_strLine2.empty());
-   
+
    m_Field[FLD_NORADNUM] = m_strLine1.substr(TLE1_COL_SATNUM, TLE1_LEN_SATNUM);
    m_Field[FLD_INTLDESC] = m_strLine1.substr(TLE1_COL_INTLDESC_A,
                                              TLE1_LEN_INTLDESC_A +
-                                             TLE1_LEN_INTLDESC_B +   
-                                             TLE1_LEN_INTLDESC_C);   
-   m_Field[FLD_EPOCHYEAR] = 
+                                             TLE1_LEN_INTLDESC_B +
+                                             TLE1_LEN_INTLDESC_C);
+   m_Field[FLD_EPOCHYEAR] =
          m_strLine1.substr(TLE1_COL_EPOCH_A, TLE1_LEN_EPOCH_A);
 
-   m_Field[FLD_EPOCHDAY] = 
+   m_Field[FLD_EPOCHDAY] =
          m_strLine1.substr(TLE1_COL_EPOCH_B, TLE1_LEN_EPOCH_B);
-   
+
    if (m_strLine1[TLE1_COL_MEANMOTIONDT] == '-')
    {
       // value is negative
@@ -235,10 +235,10 @@ void cTle::Initialize()
    {
       m_Field[FLD_MMOTIONDT] = "0";
    }
-   
+
    m_Field[FLD_MMOTIONDT] += m_strLine1.substr(TLE1_COL_MEANMOTIONDT + 1,
                                                TLE1_LEN_MEANMOTIONDT);
-   
+
    // decimal point assumed; exponential notation
    m_Field[FLD_MMOTIONDT2] = ExpToAtof(
                                  m_strLine1.substr(TLE1_COL_MEANMOTIONDT2,
@@ -246,19 +246,19 @@ void cTle::Initialize()
    // decimal point assumed; exponential notation
    m_Field[FLD_BSTAR] = ExpToAtof(m_strLine1.substr(TLE1_COL_BSTAR,
                                                     TLE1_LEN_BSTAR));
-   // TLE1_COL_EPHEMTYPE      
-   // TLE1_LEN_EPHEMTYPE   
+   // TLE1_COL_EPHEMTYPE
+   // TLE1_LEN_EPHEMTYPE
    m_Field[FLD_SET] = m_strLine1.substr(TLE1_COL_ELNUM, TLE1_LEN_ELNUM);
-   
+
    TrimLeft(m_Field[FLD_SET]);
-   
-   // TLE2_COL_SATNUM         
-   // TLE2_LEN_SATNUM         
-   
+
+   // TLE2_COL_SATNUM
+   // TLE2_LEN_SATNUM
+
    m_Field[FLD_I] = m_strLine2.substr(TLE2_COL_INCLINATION,
                                       TLE2_LEN_INCLINATION);
    TrimLeft(m_Field[FLD_I]);
-   
+
    m_Field[FLD_RAAN] = m_strLine2.substr(TLE2_COL_RAASCENDNODE,
                                          TLE2_LEN_RAASCENDNODE);
    TrimLeft(m_Field[FLD_RAAN]);
@@ -267,19 +267,19 @@ void cTle::Initialize()
    m_Field[FLD_E] = "0.";
    m_Field[FLD_E] += m_strLine2.substr(TLE2_COL_ECCENTRICITY,
                                        TLE2_LEN_ECCENTRICITY);
-   
+
    m_Field[FLD_ARGPER] = m_strLine2.substr(TLE2_COL_ARGPERIGEE,
                                            TLE2_LEN_ARGPERIGEE);
    TrimLeft(m_Field[FLD_ARGPER]);
-   
+
    m_Field[FLD_M] = m_strLine2.substr(TLE2_COL_MEANANOMALY,
                                       TLE2_LEN_MEANANOMALY);
    TrimLeft(m_Field[FLD_M]);
-   
-   m_Field[FLD_MMOTION] = m_strLine2.substr(TLE2_COL_MEANMOTION, 
+
+   m_Field[FLD_MMOTION] = m_strLine2.substr(TLE2_COL_MEANMOTION,
                                             TLE2_LEN_MEANMOTION);
    TrimLeft(m_Field[FLD_MMOTION]);
-   
+
    m_Field[FLD_ORBITNUM] = m_strLine2.substr(TLE2_COL_REVATEPOCH,
                                              TLE2_LEN_REVATEPOCH);
    TrimLeft(m_Field[FLD_ORBITNUM]);
@@ -322,7 +322,7 @@ bool cTle::IsValidLine(string& str, eTleLine line)
 // Calculate the check sum for a given line of TLE data, the last character
 // of which is the current checksum. (Although there is no check here,
 // the current checksum should match the one we calculate.)
-// The checksum algorithm: 
+// The checksum algorithm:
 //    Each number in the data line is summed, modulo 10.
 //    Non-numeric characters are zero, except minus signs, which are 1.
 //
@@ -332,12 +332,12 @@ int cTle::CheckSum(const string& str)
    // checksum character in the checksum calculation.
    size_t len = str.size() - 1;
    int xsum = 0;
-   
+
    for (size_t i = 0; i < len; i++)
    {
       char ch = str[i];
 
-      if (isdigit(ch)) 
+      if (isdigit(ch))
       {
          xsum += (ch - '0');
       }
@@ -346,7 +346,7 @@ int cTle::CheckSum(const string& str)
          xsum++;
       }
    }
-   
+
    return (xsum % 10);
 }
 
@@ -361,5 +361,24 @@ void cTle::TrimRight(string& s)
 {
    while ((s.size() > 0) && (s[s.size() - 1] == ' ')) { s.erase(s.size() - 1); }
 }
+
+/** MODIFICATION BY: C. Araguz ********************************************************************
+ *    This new method has been included for convenience.
+ */
+time_t cTle::getTLEtime() const
+{
+    int epochYear = (int)GetField(cTle::FLD_EPOCHYEAR);
+    double epochDay = GetField(cTle::FLD_EPOCHDAY);
+    if (epochYear < 57) {
+       epochYear += 2000;
+    } else {
+       epochYear += 1900;
+    }
+    cJulian jdEpoch(epochYear, epochDay);
+
+    return jdEpoch.ToTime();
+}
+/**************************************************************************************************/
+
 }
 }
