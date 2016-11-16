@@ -1,3 +1,13 @@
+Note from the owner of this repo:
+=================================================================================
+This libraries have been slightly modified to add missing functionalities, to
+fix minor bugs and to allow to build these sources in a Linux/G++ environment
+rather than with Microsoft Visual Studio.
+
+Original README:
+=================================================================================
+
+
 C++ NORAD SGP4/SDP4 Implementation
 Developed by Michael F. Henry
 
