@@ -25,6 +25,11 @@ function [cds, items] = orblearnLoad3(path_to_props, d_max, max_files)
     d_done = eye(numel(csvfiles));          % Identity matrix with boolean "done" flags.
 
     iterator_max = min(numel(csvfiles), max_files);
+    if nchoosek(iterator_max, 2) > 500
+        printf("[    !] \x1b[33mWarning: more than 500 cross-distances will be computed. Press a key to continue.\x1b[0m\n");
+        pause;
+    end
+
     counter = 1;                            % Cross-distance pair counter.
     if numel(csvfiles) >= 2
         for ii = 1:iterator_max

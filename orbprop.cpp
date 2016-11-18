@@ -350,7 +350,7 @@ int main(int argc, char **argv)
         try {
             t->second.propagate(output_path_root, prop_time_start, prop_time_end, prop_time_step, prop_n_points, verbose);
         } catch(exception& e) {
-            cerr << DBG_REDD "  Propagation of " << t->first << " throwed an EXCEPTION: " << e.what() << DBG_NOCOLOR << endl;
+            // cerr << DBG_REDD "  Propagation of " << t->first << " throwed an EXCEPTION: " << e.what() << DBG_NOCOLOR << endl;
         }
     }
 
