@@ -1,13 +1,13 @@
-function orblearnSingleFreqAnalysis (cds_i)
+function orblearnSingleFreqAnalysis (cds_i, job_id = 0, force_lp = true)
 % PROCESSCROSSDISTANCE help TBD
 
     Ts = cds_i.tstep;     % Known sampling period (i.e. propagation step).
     Fs = 1 / Ts;            % Known sampling frequency.
 
     % Reconstruct signal (linearly interpolating points): ------------------------------------------
-    t = [cds_i.tstart:Ts:cds_i.tend];   % Recovered time.
-    x0 = cds_i.d(:, 2);                   % Original distance.
-    t0 = cds_i.d(:, 1);                   % Original time.
+    t = [cds_i.tstart:Ts:cds_i.tend];       % Recovered time.
+    x0 = cds_i.d(:, 2);                     % Original distance.
+    t0 = cds_i.d(:, 1);                     % Original time.
     x = interp1(t0, x0, t, "linear");       % Recovered distance.
     t = (t - min(t)) / 3600;                % Start in 0 and display in hours.
 
@@ -25,39 +25,66 @@ function orblearnSingleFreqAnalysis (cds_i)
     [p, ff] = periodogram(x, ones(size(x)), Nfft, Fs, "onesided");  % PSD.
 
     % Filter FFT: ----------------------------------------------------------------------------------
-    % -- Get the element where the amplitude is max and not f0 (i.e. index of the first harmonic.)
-    wc = find(y == max(y));
-    if length(wc) == 0
-        printf("Error: unable to find first harmonic\n");
-        wc = Nfft / 4;
-    end
+    filt_n = 4;                             % Filter order (BP4 or LP4).
+    filt_attenuation = 40;                  % Min. 40 dB of attenuation in stop-band.
 
-    % BP & LP case: --------------------------------------------------------------------------------
-    filt_BWn = (Nfft / 2) / 10;                     % Filter bandwidth (in FFT samples).
-    wpl = wc - (filt_BWn / 2);                      % Pass-band low-edge frequency (index).
-    wph = wc + (filt_BWn / 2);                      % Pass-band high-edge frequency (index).
-
-    wpl = wpl / (Nfft / 2);                         % Normalize to Nyquist range [0, 1].
-    wph = wph / (Nfft / 2);                         % Normalize to Nyquist range [0, 1].
-
-    filt_n = 4;                                     % Filter order (BP3 or LP3).
-    filt_attenuation = 40;                          % Min. 40 dB of attenuation in stop-band.
-
-    if wpl <= 0.01   % Lower than 1% of Nfft.
-        % Calculate D(s) and N(s); LPn:
-        [filt_b, filt_a] = cheby2(filt_n, filt_attenuation, wph);
-        linefl_x = [1e-10 1e-10];   % This is effectively hidden.
-        linefl_y = [-200 -200];     % This is effectively hidden.
-        linefh_x = [f(ceil(wph * (Nfft / 2))) f(ceil(wph * (Nfft / 2)))];
+    if force_lp
+        % LP-only: ---------------------------------------------------------------------------------
+        % -- Processes the specrum to find the true firt harmonic:
+        % -- We expect the 1st harmonic to be compressed within f = [4e-4 and 1e-3].
+        y2 = y(floor((4e-5 / Fs) * Nfft):ceil((1e-3 / Fs) * Nfft));
+        win_size = length(y2) / 3;
+        maxs = zeros(2, 0);
+        for jj = 1:(length(y2) - win_size)
+            max_jj   = find(y2 == max(y2(jj:(jj + win_size))));
+            maxs_idx = find(max_jj == maxs(1, :));
+            if maxs_idx                     % This maximum had been found before.
+                maxs(2, maxs_idx)++;        % Increment the counter.
+            else                            % This maximum had never been found before.
+                maxs = [maxs [max_jj; 1]];  % Save the maximum.
+            end
+        end
+        wc  = maxs(1, (find(maxs(2, :) == max(maxs(2, :)))(1))) + floor((4e-5 / Fs) * Nfft);
+        wph = ceil(wc * 0.85);
+        % -- Calculate D(s) and N(s); LPn:
+        [filt_b, filt_a] = cheby2(filt_n, filt_attenuation, (wph / (Nfft / 2)));
+        linefl_x = [1e-10 1e-10];           % This is effectively hidden.
+        linefl_y = [-200 -200];             % This is effectively hidden.
+        linefh_x = f(wph) * [1 1];
         linefh_y = [-100 1];
+        wpl = 0;    % This is only done for further conditional check in this function.
     else
-        % Calculate D(s) and N(s); BPn:
-        [filt_b, filt_a] = cheby2(filt_n, filt_attenuation, [wpl wph]);
-        linefl_x = [f(ceil(wpl * (Nfft / 2))) f(ceil(wpl * (Nfft / 2)))];
-        linefl_y = [-100 1];
-        linefh_x = [f(ceil(wph * (Nfft / 2))) f(ceil(wph * (Nfft / 2)))];
-        linefh_y = [-100 1];
+        % Basic cut frequency and BP / LP selection: -----------------------------------------------
+        % -- Get the elem. where the amplitude is max and not f0 (i.e. index of the first harmonic.)
+        wc = find(y == max(y));
+        if length(wc) == 0
+            printf("Error: unable to find first harmonic\n");
+            wc = Nfft / 4;
+        end
+        filt_BWn = (Nfft / 2) / 10;                 % Filter bandwidth (in FFT samples).
+        wpl = wc - (filt_BWn / 2);                  % Pass-band low-edge frequency (index).
+        wph = wc + (filt_BWn / 2);                  % Pass-band high-edge frequency (index).
+
+        wpl = wpl / (Nfft / 2);                     % Normalize to Nyquist range [0, 0.5].
+        wph = wph / (Nfft / 2);                     % Normalize to Nyquist range [0, 0.5].
+
+        if wpl <= 0.01   % Lower than 1% of Nfft.
+            % -- Calculate D(s) and N(s); LPn:
+            [filt_b, filt_a] = cheby2(filt_n, filt_attenuation, wph);
+            linefl_x = [1e-10 1e-10];               % This is effectively hidden.
+            linefl_y = [-200 -200];                 % This is effectively hidden.
+            linefh_x = [f(ceil(wph * (Nfft / 2))) f(ceil(wph * (Nfft / 2)))];
+            linefh_y = [-100 1];
+        else
+            % -- Calculate D(s) and N(s); BPn:
+            [filt_b, filt_a] = cheby2(filt_n, filt_attenuation, [wpl wph]);
+            linefl_x = [f(ceil(wpl * (Nfft / 2))) f(ceil(wpl * (Nfft / 2)))];
+            linefl_y = [-100 1];
+            linefh_x = [f(ceil(wph * (Nfft / 2))) f(ceil(wph * (Nfft / 2)))];
+            linefh_y = [-100 1];
+        end
     end
+    % ----------------------------------------------------------------------------------------------
 
     % Get frequency response:
     [filt_h, w] = freqz(filt_b, filt_a, (Nfft / 2), "whole", Fs);
@@ -72,7 +99,7 @@ function orblearnSingleFreqAnalysis (cds_i)
     % -- Limits:
     fft_fmax = f(min((wc * 7), (Nfft / 2)));
     fdom_fmax = max(fft_fmax, 1e-3);
-    fdom_fmin = max(min(1e-5, f(wc)), min(f(2:end)));
+    fdom_fmin = 1e-5;
 
     % -- Colors:
     color_orange = [244 143 66] / 255;
@@ -83,7 +110,7 @@ function orblearnSingleFreqAnalysis (cds_i)
 
     % -- Frequency domain: FFT (log scale).
     subplot(3, 4, [1 2]);
-    line1_x = [max(f(wc), min(f(2:end))) max(f(wc), min(f(2:end)))];
+    line1_x = max(f(wc), min(f(2:end))) * [1 1];
     line1_y = [-100 (20 * log10(y(wc)))];
     semilogx(f(2:end), 20 * log10(y(2:end)), "-ob", "linewidth", 0.5, "markersize", 2,
              w(2:end), 20 * log10(filt_h(2:end)), "r", "linewidth", 0.5, "markersize", 2,
@@ -92,12 +119,26 @@ function orblearnSingleFreqAnalysis (cds_i)
              linefh_x, linefh_y, "o--r", "markersize", 2, "linewidth", 1);
     xlabel("Frequency (Hz)", "fontsize", 7);
     ylabel("Amplitude (dB)", "fontsize", 7);
-    title(["Original frequency-series for pair (" int2str(cds_i.p(1)) ", " int2str(cds_i.p(2)) ")"], "fontsize", 9, "fontweight", "bold");
-    text(ym(1), 20, strcat(["  " num2str(20 * log10(ym(2))) " dB, " num2str((1/ym(1)) / 3600) " hours"]), "fontsize", 6);  % Adds a marker with the value
-    if wpl <= 0.01
-        text(fdom_fmin, -60, strcat(["  Chebyshev LP" int2str(filt_n)]), "fontsize", 6, "color", "r");
+
+    title(["Original frequency-series for pair (" int2str(cds_i.p(1)) ", " int2str(cds_i.p(2)) ")"],
+        "fontsize", 9, "fontweight", "bold");
+
+    text(ym(1), 20,
+        strcat(["  1^{st} Harmonic:\n  " num2str(20 * log10(ym(2))) " dB, " num2str((1/ym(1)) / 3600) " hours"]),
+        "fontsize", 6, "verticalalignment", "top");  % Adds a marker with the value
+
+    if force_lp || wpl <= 0.01
+        text(fdom_fmin, -10,
+            strcat(["   Chebyshev LP" int2str(filt_n) "\n "
+                "   f_c = " num2str(f(wc)) " Hz\n "
+                "   T_c = " num2str((1 / f(wc)) / 60) " min." ]),
+                "fontsize", 6, "color", "r", "verticalalignment", "top", "interpreter", "tex");
     else
-        text(fdom_fmin, -60, strcat(["  Chebyshev BP" int2str(filt_n)]), "fontsize", 6, "color", "r");
+        text(fdom_fmin, -10,
+            strcat(["   Chebyshev BP" int2str(filt_n) "\n "
+                "   f_c = " num2str(f(wc)) " Hz\n "
+                "   T_c = " num2str((1 / f(wc)) / 60) " min." ]),
+                "fontsize", 6, "color", "r", "verticalalignment", "top", "interpreter", "tex");
     end
     grid on;
     axis([fdom_fmin fdom_fmax -80 (max(20 * log10(y(2:end))) + 10)]);
@@ -165,7 +206,7 @@ function orblearnSingleFreqAnalysis (cds_i)
     % -- Save image in JPG:
     h = findall (0, "-property", "fontname");
     set(h, "fontname", "CMU Serif");
-    filename = strcat(["plots1_2/fig_" int2str(cds_i.p(1)) "-" int2str(cds_i.p(2)) ".svg"]);
+    filename = strcat(["/media/carles/VB2/plots/plots1/fig_" int2str(job_id) "_" int2str(cds_i.p(1)) "-" int2str(cds_i.p(2)) ".svg"]);
     print(fig, "-dsvg", filename, "-S1500,800");
     printf(" -- Saving plot: \x1b[32m%s\x1b[0m\n", filename);
     fflush(stdout);
