@@ -10,16 +10,16 @@ pkg load parallel;
 graphics_toolkit("gnuplot");
 
 %% Load propagation files, calculate cross-distances and perform analysis: =========================
-[cds, items] = orblearnLoad3("/media/carles/VB2/propagations/historic1/", 1000, 90, "rand");
+[cds, items] = orblearnLoad3("/media/carles/VB2/propagations/historic1/", 1000, 40, "rand");
 
-%% Perform frequency analysis: =====================================================================
+%% Perform analysis of the derivative: =============================================================
 % -- Parallel execution:
-pararrayfun(4, @orblearnSingleFreqAnalysis, cds, [1:items], "UniformOutput", false);
+pararrayfun(4, @orblearnSingleDerivative, cds(randperm(items)), [1:items], "UniformOutput", false);
 % -- Sequential execution:
-% arrayfun(@orblearnSingleFreqAnalysis, cds, [1:items]);
+% arrayfun(@orblearnSingleDerivative, cds, [1:items]);
 % -- Test execution:
-% orblearnSingleFreqAnalysis(cds(1));
+% orblearnSingleDerivative(cds(1));
 % -- Sequential test execution:
-% for ii = 94:items
-%     orblearnSingleFreqAnalysis(cds(ii), ii);
+% for ii = 1:items
+%     orblearnSingleDerivative(cds(ii), ii);
 % end

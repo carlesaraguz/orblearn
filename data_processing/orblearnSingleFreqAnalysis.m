@@ -2,7 +2,7 @@ function orblearnSingleFreqAnalysis (cds_i, job_id = 0, force_lp = true)
 % PROCESSCROSSDISTANCE help TBD
 
     Ts = cds_i.tstep;     % Known sampling period (i.e. propagation step).
-    Fs = 1 / Ts;            % Known sampling frequency.
+    Fs = 1 / Ts;          % Known sampling frequency.
 
     % Reconstruct signal (linearly interpolating points): ------------------------------------------
     t = [cds_i.tstart:Ts:cds_i.tend];       % Recovered time.
@@ -33,7 +33,7 @@ function orblearnSingleFreqAnalysis (cds_i, job_id = 0, force_lp = true)
         % -- Processes the specrum to find the true firt harmonic:
         % -- We expect the 1st harmonic to be compressed within f = [4e-4 and 1e-3].
         y2 = y(floor((4e-5 / Fs) * Nfft):ceil((1e-3 / Fs) * Nfft));
-        win_size = length(y2) / 3;
+        win_size = round(length(y2) / 7);
         maxs = zeros(2, 0);
         for jj = 1:(length(y2) - win_size)
             max_jj   = find(y2 == max(y2(jj:(jj + win_size))));
@@ -44,7 +44,8 @@ function orblearnSingleFreqAnalysis (cds_i, job_id = 0, force_lp = true)
                 maxs = [maxs [max_jj; 1]];  % Save the maximum.
             end
         end
-        wc  = maxs(1, (find(maxs(2, :) == max(maxs(2, :)))(1))) + floor((4e-5 / Fs) * Nfft);
+        sel_maxs = maxs(:, find(maxs(2, :) >= max(maxs(2, :) - 3)));
+        wc  = sel_maxs(1, (find(sel_maxs(1, :) == min(sel_maxs(1, :)))(1))) + floor((4e-5 / Fs) * Nfft);
         wph = ceil(wc * 0.85);
         % -- Calculate D(s) and N(s); LPn:
         [filt_b, filt_a] = cheby2(filt_n, filt_attenuation, (wph / (Nfft / 2)));
