@@ -1,5 +1,5 @@
 function orblearnSingleFreqAnalysis (cds_i, job_id = 0, force_lp = true)
-% PROCESSCROSSDISTANCE help TBD
+% ORBLEARNSINGLEFREQANALYSIS help TBD
 
     Ts = cds_i.tstep;     % Known sampling period (i.e. propagation step).
     Fs = 1 / Ts;          % Known sampling frequency.
@@ -12,7 +12,7 @@ function orblearnSingleFreqAnalysis (cds_i, job_id = 0, force_lp = true)
     t = (t - min(t)) / 3600;                % Start in 0 and display in hours.
 
     % Calculate FFT samples:
-    Nfft = 2 ** (nextpow2(length(t)) - 2);  % Number of FFT samples.
+    Nfft = 2 ** 15;                         % Number of FFT samples.
     f = (Fs * (0:(Nfft/2 - 1)) / Nfft);     % Frequency axis (in Hz).
 
     % Remove f(0) component:
